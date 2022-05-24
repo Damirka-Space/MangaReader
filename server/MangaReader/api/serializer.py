@@ -1,9 +1,9 @@
 from rest_framework import serializers
 
-from .models import Manga
+from manga.models import Manga
 
 
-class MangaSerializer(serializers.HyperlinkedModelSerializer):
+class MangaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Manga
         fields = ('name', 'chapters_cnt')
