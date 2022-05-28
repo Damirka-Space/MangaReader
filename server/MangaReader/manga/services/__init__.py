@@ -1,7 +1,8 @@
 from django.forms import model_to_dict
-from .models import Manga
 
-from .manga_service import MangaSource, Chapter
+from ..models import Manga
+from .source import ReadYagami
+from .chapter import Chapter
 
 
 def get_manga_list() -> list:
@@ -15,7 +16,7 @@ def create_new_manga_object(name: str, chapters_cnt: int) -> None:
 
 def get_manga_chapter(name: str, volume_serial: str,
                       chapter_serial: int) -> dict:
-    chapter = Chapter(MangaSource, name, volume_serial, chapter_serial)
+    chapter = Chapter(ReadYagami, name, volume_serial, chapter_serial)
     return {
         'name': chapter.manga_name,
         'source': {

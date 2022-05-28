@@ -2,7 +2,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from manga.servises import (create_new_manga_object, get_manga_chapter,
+from manga.services import (create_new_manga_object, get_manga_chapter,
                             get_manga_list)
 
 
