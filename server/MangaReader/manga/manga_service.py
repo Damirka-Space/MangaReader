@@ -14,7 +14,7 @@ class MangaSource:
     url = 'https://read.yagami.me/'
     model = models.MangaSource.objects.update_or_create(
         name='ReadYagami', url=url)
-    tmp = {}
+    tmp: dict[str, BeautifulSoup] = {}
 
     @classmethod
     def _get_webpage(cls, url: str,
@@ -23,8 +23,11 @@ class MangaSource:
         return urlopen(Request(url, headers=headers)).read()
 
     @classmethod
-    def _get_soup(cls, url: str) -> BeautifulSoup:
-        return BeautifulSoup(cls._get_webpage(url), 'html.parser')
+    def _get_soup(cls, url: str, update: bool = False) -> BeautifulSoup:
+        if url not in cls.tmp or update:
+            cls.tmp[url] = BeautifulSoup(
+                cls._get_webpage(url), 'html.parser')
+        return cls.tmp[url]
 
     @classmethod
     def _get_chapter_frames_cnt_by_first_page_url(
@@ -39,12 +42,8 @@ class MangaSource:
 
     @classmethod
     def _get_chapter_first_frame_url(cls, chapter_url: str) -> str:
-        if chapter_url not in cls.tmp:
-            url = chapter_url + 'page/1'
-            first_frame_url = cls._get_soup(url).select_one('#miku')['src']
-            cls.tmp[chapter_url] = first_frame_url
-            return first_frame_url
-        return cls.tmp[chapter_url]
+        return cls._get_soup(cls._get_chapter_first_page_url(
+            chapter_url)).select_one('#miku')['src']
 
     @classmethod
     def check_if_title_exist(cls, title_name: str,
@@ -92,6 +91,9 @@ class Chapter:
         self.serial = serial
         self.url = self._get_url()
 
+    def __str__(self) -> str:
+        return f'\nChapter::{self.source.url}::{self.manga_name}::{self.volume_serial}::{self.serial}'
+
     def _get_url(self) -> str:
         return self.source.get_chapter_url(
             self.manga_name, self.volume_serial, self.serial)
@@ -100,8 +102,10 @@ class Chapter:
         return self.source.get_frame_url(self.url, str(frame_num))
 
     def get_frames_cnt(self):
+        logger.debug('getting frames cnt')
         return self.source.get_chapter_frames_cnt(self.url)
 
     def get_frame_urls(self) -> list[str]:
+        logger.debug('getting frame urls for chapter' + str(self))
         frames_cnt = self.get_frames_cnt()
-        return [self._get_frame_url(f) for f in range(1, frames_cnt)]
+        return [self._get_frame_url(f) for f in range(1, frames_cnt + 1)]
