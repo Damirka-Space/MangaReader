@@ -7,6 +7,8 @@ name = "pypi"
 django = "*"
 djangorestframework = "*"
 bs4 = "*"
+django-cors-headers = "*"
+selenium = "*"
 
 [dev-packages]
 flake8 = "*"
@@ -15,6 +17,10 @@ black = "*"
 yapf = "*"
 ipykernel = "*"
 mypy = "*"
+pytest = "*"
+pytest-django = "*"
+django-stubs = "*"
+djangorestframework-stubs = "*"
 
 [requires]
 python_version = "3.10"
