@@ -22,7 +22,7 @@ class MangaAPIView(APIView):
 
 
 class ChapterAPIView(APIView):
-    def get(self, request: Request) -> Response:
+    def post(self, request: Request) -> Response:
         return Response({
             'message': 'to be implemented',
             'chapter':  get_manga_chapter(
