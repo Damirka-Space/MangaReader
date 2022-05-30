@@ -1,6 +1,6 @@
 import logging
 
-from .source import MangaSource
+from .source.base import MangaSourceBase
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
@@ -8,7 +8,7 @@ logger.setLevel(logging.DEBUG)
 
 
 class Chapter:
-    def __init__(self, source: MangaSource, manga_name: str,
+    def __init__(self, source: MangaSourceBase, manga_name: str,
                  volume_serial: int, serial: int) -> None:
         self.source = source
         self.manga_name = manga_name
@@ -25,7 +25,7 @@ class Chapter:
             self.manga_name, self.volume_serial, self.serial)
 
     def _get_frame_url(self, frame_num: int) -> str:
-        return self.source.get_frame_url(self.url, str(frame_num))
+        return self.source.get_frame_url(self.url, frame_num)
 
     def get_frames_cnt(self):
         logger.debug('getting frames cnt')
