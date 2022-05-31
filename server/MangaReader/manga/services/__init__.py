@@ -1,7 +1,7 @@
 from django.forms import model_to_dict
 
 from ..models import Manga
-from .source import ReadYagami, MangaHub, MangaLib
+from .source import ReadYagami, MangaLib
 from .chapter import Chapter
 
 
