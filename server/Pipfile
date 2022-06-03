@@ -9,6 +9,8 @@ djangorestframework = "*"
 bs4 = "*"
 django-cors-headers = "*"
 selenium = "*"
+fpdf2 = "*"
+pillow = "*"
 
 [dev-packages]
 flake8 = "*"

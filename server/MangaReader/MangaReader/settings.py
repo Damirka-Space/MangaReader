@@ -43,6 +43,7 @@ INSTALLED_APPS = [
 
     'api.apps.ApiConfig',
     'manga.apps.MangaConfig',
+    'pdf.apps.PdfConfig',
 ]
 
 MIDDLEWARE = [
