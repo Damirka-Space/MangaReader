@@ -13,6 +13,8 @@ class Manga(models.Model):
 
 
 class Frame(models.Model):
+    chapter = models.ForeignKey(to='Chapter', on_delete=models.CASCADE)
+    serial = models.IntegerField()
     external_url = models.CharField(max_length=1024)
     internal_url = models.CharField(max_length=1024)
     img = models.BinaryField()
