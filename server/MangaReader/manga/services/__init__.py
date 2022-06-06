@@ -15,15 +15,15 @@ def create_new_manga_object(name: str, chapters_cnt: int) -> None:
 
 
 def get_manga_chapter(name: str, volume_serial: str,
-                      chapter_serial: int) -> dict:
-    chapter = Chapter(MangaLib, name, volume_serial, chapter_serial)
+                      serial: int) -> dict:
+    chapter = Chapter(MangaLib, name, volume_serial, serial)
     return {
         'name': chapter.manga_name,
         'source': {
             'url': chapter.source.url
         },
         'volume_serial': chapter.volume_serial,
-        'chapter_serial': chapter.serial,
-        'frames_cnt': chapter.get_frames_cnt(),
-        'frames_urls': chapter.get_frame_urls()
+        'serial': chapter.serial,
+        'frames_cnt': chapter.object.frames_cnt,
+        'frames_urls': chapter.get_frame_external_urls()
     }

@@ -1,4 +1,4 @@
-from asyncio.log import logger
+from typing import Generator
 import requests
 import logging
 
@@ -15,8 +15,6 @@ class Frame:
         logger.debug('chapter object' + str(self.chapter))
         self.serial = serial
         self.external_url = url
-        self.internal_url = ''
-        self.img = b''
         self.object = self.__get_object()
 
     def __get_object(self) -> None:
@@ -25,7 +23,6 @@ class Frame:
             return models.Frame.objects.get(
                 chapter=self.chapter,
                 serial=self.serial,
-                external_url=self.external_url
             )
         except:
             logger.debug('creating object')
@@ -33,12 +30,21 @@ class Frame:
                 chapter=self.chapter,
                 serial=self.serial,
                 external_url=self.external_url,
-                internal_url=self.internal_url,
+                internal_url='',
                 img=self.__get_img_from_external_url()
             )
 
     def __get_img_from_external_url(self) -> bytes:
         return requests.get(self.external_url).content
 
-    def get_img(self) -> bytes:
-        return self.object.img
+    @classmethod
+    def is_all_related_to_chapter_exist(cls, chapter_id: int) -> bool:
+        chapter = models.Chapter.objects.get(id=chapter_id)
+        return len(chapter.frame_set.all()) == chapter.frames_cnt
+
+    @classmethod
+    def get_all_related_to_chapter(
+            cls, chapter_id: int) -> Generator[models.Frame, None, None]:
+        chapter = models.Chapter.objects.get(id=chapter_id)
+        for frame in chapter.frame_set.all():
+            yield frame
