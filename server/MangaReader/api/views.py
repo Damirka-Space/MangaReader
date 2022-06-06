@@ -2,8 +2,9 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from manga.services import (create_new_manga_object, get_manga_chapter,
+from manga.services import (create_new_manga_object,
                             get_manga_list)
+from .serializer import ChapterSerializer
 
 
 class MangaAPIView(APIView):
@@ -23,11 +24,7 @@ class MangaAPIView(APIView):
 
 class ChapterAPIView(APIView):
     def post(self, request: Request) -> Response:
-        return Response({
-            'message': 'to be implemented',
-            'chapter':  get_manga_chapter(
-                name=request.data['name'],
-                volume_serial=request.data['volume_serial'],
-                chapter_serial=request.data['chapter_serial'],
-            ),
-        })
+        serializer = ChapterSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({'chapter': serializer.data})
