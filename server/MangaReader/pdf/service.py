@@ -6,27 +6,18 @@ from manga.services.chapter import Chapter
 from manga.services.source import ReadYagami, MangaLib
 
 
-chapter_test = Chapter(
-    source=ReadYagami,
-    manga_name='tokyo_ghoul',
-    volume_serial=1,
-    serial=1
-)
-
-
-def get_pdf():
+def get_chapter_in_pdf(manga_name: str, volume_serial: int,
+                       serial: int) -> BytesIO:
     pdf = FPDF()
 
-    # for url in chapter_test.get_frame_urls():
-    #     print('download to pdf ' + url)
-    #     try:
-    #         img_raw = requests.get(url).content
-    #         img = Image.open(BytesIO(img_raw))
-    #         width, height = img.size
-    #     except:
-    #         continue
+    chapter = Chapter(
+        source=MangaLib,
+        manga_name=manga_name,
+        volume_serial=volume_serial,
+        serial=serial
+    )
 
-    for frame in chapter_test.get_frames():
+    for frame in chapter.get_frame_images():
         img = Image.open(BytesIO(frame))
         width, height = img.size
 
