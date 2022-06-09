@@ -2,8 +2,10 @@ import logging
 from typing import Generator
 
 from .. import models
+from .frame import FrameBrowser
+from .manga import Manga
 from .source.base import MangaSourceBase
-from .frame import Frame
+from .volume import Volume
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
@@ -17,65 +19,78 @@ class Chapter:
         self.manga_name = manga_name
         self.volume_serial = volume_serial
         self.serial = serial
-        self.url = self._get_url()
-        self.object = self.__get_object()
-        logger.debug('chapter object: ' + str(self.object))
 
-    def __str__(self) -> str:
-        return f'\nChapter::{self.source.url}::{self.manga_name}:: \
-            {self.volume_serial}::{self.serial}'
+    @property
+    def frames(self) -> Generator[models.Frame, None, None]:
+        if self.__frame_browser.is_all_related_exist():
+            for frame in self.__frame_browser.get_all_related():
+                yield frame
+        else:
+            for serial in range(1, self.frames_cnt + 1):
+                yield self._get_frame_by_serial(serial)
 
-    def __get_object(self):
-        try:
-            return models.Chapter.objects.get(
-                volume_id=models.Volume.objects.get(id=1),
-                serial=self.serial,
-            )
-        except:
-            return models.Chapter.objects.create(
-                source_name=models.MangaSource.objects.get(id=1),
-                manga_id=models.Manga.objects.get(id=1),
-                volume_id=models.Volume.objects.get(id=1),
-                serial=self.serial,
-                frames_cnt=self.get_frames_cnt(),
-            )
+    @property
+    def frames_cnt(self) -> int:
+        logger.debug('getting frames cnt')
+        return self._object.frames_cnt
 
-    def _get_url(self) -> str:
+    @property
+    def _id(self):
+        return self._object.id
+
+    @property
+    def _url(self) -> str:
         return self.source.get_chapter_url(
             self.manga_name, self.volume_serial, self.serial)
 
-    def _get_frame_url(self, frame_num: int) -> str:
-        return self.source.get_frame_url(self.url, frame_num)
+    @property
+    def _object(self) -> models.Chapter:
+        try:
+            logger.debug('trying to get object')
+            return self.__get_object()
+        except models.Chapter.DoesNotExist:
+            logger.debug('creating object')
+            return self.__create_object()
 
-    def get_frames_cnt(self):
-        """get number of images related to chapter"""
-        logger.debug('getting frames cnt')
-        return self.source.get_chapter_frames_cnt(self.url)
+    def _get_frame_by_serial(self, serial: int) -> models.Frame:
+        logger.debug(f'get frame serial {serial}')
+        if self.__frame_browser.is_exist(serial):
+            return self.__frame_browser.get_by_serial(serial)
+        return self.__frame_browser.create(
+            serial, self.source.get_frame_url(self._url, serial))
 
-    def get_frame_urls(self) -> list[str]:
-        """get urls of images related to chapter from source"""
-        logger.debug('getting frame urls for chapter' + str(self))
-        frames_cnt = self.get_frames_cnt()
-        return [self._get_frame_url(f) for f in range(1, frames_cnt + 1)]
+    @property
+    def __frame_browser(self) -> FrameBrowser:
+        return FrameBrowser(self._id)
 
-    def get_frames(self) -> Generator[models.Frame, None, None]:
-        if Frame.is_all_related_to_chapter_exist(self.object.id):
-            for frame in Frame.get_all_related_to_chapter(self.object.id):
-                yield frame
-        else:
-            for serial, url in enumerate(self.get_frame_urls()):
-                logger.debug('get frame from ' + url)
-                yield Frame(self.object.id, serial, url).object
+    @property
+    def __manga_id(self) -> str:
+        return Manga.get_by_name_in_source(self.manga_name, self.source.id).id
 
-    def get_frame_images(self) -> Generator[bytes, None, None]:
-        """
-        Get frames related to the chapter
-        Return generator of images in bytes format
-        Images could be jpg or png
-        """
-        for frame in self.get_frames():
-            yield frame.img
+    def __get_object(self) -> models.Chapter:
+        return models.Chapter.objects.get(
+            volume_id=Volume.get_or_create(
+                self.__manga_id, self.volume_serial),
+            serial=self.serial,
+        )
 
-    def get_frame_external_urls(self) -> Generator[str, None, None]:
-        for frame in self.get_frames():
-            yield frame.external_url
+    def __create_object(self) -> models.Chapter:
+        return models.Chapter.objects.create(
+            source_name=models.MangaSource.objects.get(id=self.source.id),
+            manga_id=models.Manga.objects.get(id=self.__manga_id),
+            volume_id=Volume.get_or_create(
+                self.__manga_id, self.volume_serial),
+            serial=self.serial,
+            frames_cnt=self.source.get_chapter_frames_cnt(self._url),
+        )
+
+
+class MockedChapter(Chapter):
+    def _get_frame_by_serial(self, serial: int) -> models.Frame:
+        return models.Frame.objects.create(
+            chapter=self._object,
+            serial=serial,
+            external_url=self.source.get_frame_url(self._url, serial),
+            internal_url='',
+            img=b''
+        )

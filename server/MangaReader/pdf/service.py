@@ -17,13 +17,12 @@ def get_chapter_in_pdf(manga_name: str, volume_serial: int,
         serial=serial
     )
 
-    for frame in chapter.get_frame_images():
-        img = Image.open(BytesIO(frame))
-        width, height = img.size
+    for frame in chapter.frames:
+        img = Image.open(BytesIO(frame.img))
 
-        pdf.add_page(format=(width, height))
+        pdf.add_page(format=img.size)
         pdf.image(img,
                   x=0, y=0,
-                  w=width, h=height)
+                  w=img.width, h=img.height)
 
     return BytesIO(pdf.output())

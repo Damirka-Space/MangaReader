@@ -24,6 +24,6 @@ def get_manga_chapter(name: str, volume_serial: str,
         },
         'volume_serial': chapter.volume_serial,
         'serial': chapter.serial,
-        'frames_cnt': chapter.object.frames_cnt,
-        'frames_urls': chapter.get_frame_external_urls()
+        'frames_cnt': chapter.frames_cnt,
+        'frames_urls': [f.external_url for f in chapter.frames]
     }
