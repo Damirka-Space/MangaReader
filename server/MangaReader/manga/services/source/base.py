@@ -16,45 +16,13 @@ logger.setLevel(logging.DEBUG)
 class MangaSourceBase(ABC):
     name: str
     url: str
-    model = models.MangaSource
-    tmp: dict[str, BeautifulSoup] = {}
+    __model = models.MangaSource
+    __tmp: dict[str, BeautifulSoup] = {}
 
     @classmethod
-    def __get_selenium_driver(cls, show_browser: bool = False,
-                              options: Options = None) -> Chrome:
-        if not show_browser:
-            options = Options()
-            options.add_argument('--headless')
-        return Chrome(
-            '/usr/lib/chromium-browser/chromedriver',
-            options=options)
-
-    @classmethod
-    def __get_webpage_with_selenium(cls, url: str) -> str:
-        driver = cls.__get_selenium_driver()
-        driver.get(url)
-        html = driver.page_source
-        driver.close()
-        return html
-
-    @classmethod
-    def _get_webpage(cls, url: str,
-                     headers: dict = {'User-Agent': 'Mozilla/5.0'},
-                     with_selenium: bool = False) -> bytes | str:
-        logger.info('Visiting url: ' + url)
-
-        if not with_selenium:
-            return urlopen(Request(url, headers=headers)).read()
-        return cls.__get_webpage_with_selenium(url)
-
-    @classmethod
-    def _get_soup(cls, url: str, update: bool = False,
-                  with_selenium: bool = False) -> BeautifulSoup:
-        if url not in cls.tmp or update:
-            cls.tmp[url] = BeautifulSoup(
-                cls._get_webpage(
-                    url, with_selenium=with_selenium), 'html.parser')
-        return cls.tmp[url]
+    @property
+    def id(cls):
+        return cls.__object.id
 
     @classmethod
     @abstractmethod
@@ -71,3 +39,45 @@ class MangaSourceBase(ABC):
     @abstractmethod
     def get_frame_url(cls, chapter_url: str, frame_num: int) -> str:
         pass
+
+    @classmethod
+    def _get_soup(cls, url: str, update: bool = False,
+                  with_selenium: bool = False) -> BeautifulSoup:
+        if url not in cls.__tmp or update:
+            cls.__tmp[url] = BeautifulSoup(
+                cls._get_webpage(
+                    url, with_selenium=with_selenium), 'html.parser')
+        return cls.__tmp[url]
+
+    @classmethod
+    def _get_webpage(cls, url: str,
+                     headers: dict = {'User-Agent': 'Mozilla/5.0'},
+                     with_selenium: bool = False) -> bytes | str:
+        logger.info('Visiting url: ' + url)
+
+        if not with_selenium:
+            return urlopen(Request(url, headers=headers)).read()
+        return cls.__get_webpage_with_selenium(url)
+
+    @classmethod
+    @property
+    def __object(cls):
+        return cls.__model.objects.get_or_create(name=cls.name, url=cls.url)[0]
+
+    @classmethod
+    def __get_webpage_with_selenium(cls, url: str) -> str:
+        driver = cls.__get_selenium_driver()
+        driver.get(url)
+        html = driver.page_source
+        driver.close()
+        return html
+
+    @classmethod
+    def __get_selenium_driver(cls, show_browser: bool = False,
+                              options: Options = None) -> Chrome:
+        if not show_browser:
+            options = Options()
+            options.add_argument('--headless')
+        return Chrome(
+            '/usr/lib/chromium-browser/chromedriver',
+            options=options)
