@@ -51,6 +51,10 @@ class FrameBrowser:
     def __init__(self, chapter_id: int) -> None:
         self.__chapter_id = chapter_id
 
+    @classmethod
+    def get_by_id(cls, frame_id: int) -> models.Frame:
+        return models.Frame.objects.get(id=frame_id)
+
     def create(self, serial: int,
                external_url: str) -> models.Frame:
         return Frame(self.__chapter_id, serial, external_url).object
