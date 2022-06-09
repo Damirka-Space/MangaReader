@@ -29,3 +29,4 @@ python_version = "3.10"
 
 [scripts]
 server = 'bash -c "python MangaReader/manage.py runserver"'
+static_analyzer = 'bash -c "cd MangaReader && mypy ."'
