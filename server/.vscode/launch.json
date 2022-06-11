@@ -8,7 +8,7 @@
             "name": "Python: Django",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/server/MangaReader/manage.py",
+            "program": "${workspaceFolder}/MangaReader/manage.py",
             "args": [
                 "runserver"
             ],
