@@ -19,3 +19,8 @@ class MockedMangaSource(MangaSourceBase):
     @classmethod
     def get_frame_url(cls, chapter_url: str, frame_num: int) -> str:
         return chapter_url + '/' + str(frame_num)
+
+    @classmethod
+    def get_frame_image(cls, chapter_url: str, frame_serial: int) -> bytes:
+        frame_url = cls.get_frame_url(chapter_url, frame_serial)
+        return bytes(frame_url, 'utf-8')
