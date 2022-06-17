@@ -8,6 +8,7 @@ from selenium.webdriver.chrome.options import Options
 
 from ... import models
 
+# [ ] move logging config to settings.py
 logging.basicConfig()
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -28,6 +29,8 @@ class MangaSourceBase(ABC):
     @abstractmethod
     def get_chapter_url(cls, manga_name: str, volume_serial: str,
                         chapter_serial: str) -> str:
+        # FIXME Serials int not str
+        # NOTE get from only chapter object
         pass
 
     @classmethod
@@ -36,9 +39,14 @@ class MangaSourceBase(ABC):
         pass
 
     @classmethod
-    @abstractmethod
+    @abstractmethod  # FIXME frame_serial
     def get_frame_url(cls, chapter_url: str, frame_num: int) -> str:
-        pass
+        pass  # NOTE private
+
+    @classmethod
+    def get_frame_image(cls, chapter_url: str, frame_serial: int) -> bytes:
+        frame_url = cls.get_frame_url(chapter_url, frame_serial)
+        return cls._get_webpage(frame_url)
 
     @classmethod
     def _get_soup(cls, url: str, update: bool = False,
