@@ -19,6 +19,7 @@ class Chapter:
         self.manga_name = manga_name
         self.volume_serial = volume_serial
         self.serial = serial
+        # [ ] Validate if exist in source else raise exception
 
     @property
     def frames(self) -> Generator[models.Frame, None, None]:
@@ -26,7 +27,7 @@ class Chapter:
             for frame in self.__frame_browser.get_all_related():
                 yield frame
         else:
-            for serial in range(1, self.frames_cnt + 1):
+            for serial in self.__frame_serials:
                 yield self._get_frame_by_serial(serial)
 
     @property
@@ -57,11 +58,16 @@ class Chapter:
         if self.__frame_browser.is_exist(serial):
             return self.__frame_browser.get_by_serial(serial)
         return self.__frame_browser.create(
-            serial, self.source.get_frame_url(self._url, serial))
+            serial, self.source.get_frame_image(self._url, serial))
 
     @property
     def __frame_browser(self) -> FrameBrowser:
         return FrameBrowser(self._id)
+
+    @property
+    def __frame_serials(self) -> Generator[int, None, None]:
+        for frame_serial in range(1, self.frames_cnt + 1):
+            yield frame_serial
 
     @property
     def __manga_id(self) -> str:
@@ -75,22 +81,11 @@ class Chapter:
         )
 
     def __create_object(self) -> models.Chapter:
-        return models.Chapter.objects.create(
+        return models.Chapter.objects.create(  # NOTE create from volume
             source_name=models.MangaSource.objects.get(id=self.source.id),
             manga_id=models.Manga.objects.get(id=self.__manga_id),
             volume_id=Volume.get_or_create(
                 self.__manga_id, self.volume_serial),
             serial=self.serial,
             frames_cnt=self.source.get_chapter_frames_cnt(self._url),
-        )
-
-
-class MockedChapter(Chapter):
-    def _get_frame_by_serial(self, serial: int) -> models.Frame:
-        return models.Frame.objects.create(
-            chapter=self._object,
-            serial=serial,
-            external_url=self.source.get_frame_url(self._url, serial),
-            internal_url='',
-            img=b''
         )
