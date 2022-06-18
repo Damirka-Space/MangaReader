@@ -26,6 +26,6 @@ class MangaLib(MangaSourceBase):
         return len(cls._get_soup(chapter_url).select('option'))
 
     @classmethod
-    def get_frame_url(cls, chapter_url: str, frame_num: int) -> str:
-        soup = cls._get_soup(cls._get_page_url(chapter_url, frame_num))
-        return soup.find_all('img')[frame_num - 1]['src']
+    def get_frame_url(cls, chapter_url: str, frame_serial: int) -> str:
+        soup = cls._get_soup(cls._get_page_url(chapter_url, frame_serial))
+        return soup.find_all('img')[frame_serial - 1]['src']

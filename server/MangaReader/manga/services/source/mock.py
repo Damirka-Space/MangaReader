@@ -17,8 +17,8 @@ class MockedMangaSource(MangaSourceBase):
         return random.randint(16, 50)
 
     @classmethod
-    def get_frame_url(cls, chapter_url: str, frame_num: int) -> str:
-        return chapter_url + '/' + str(frame_num)
+    def get_frame_url(cls, chapter_url: str, frame_serial: int) -> str:
+        return chapter_url + '/' + str(frame_serial)
 
     @classmethod
     def get_frame_image(cls, chapter_url: str, frame_serial: int) -> bytes:

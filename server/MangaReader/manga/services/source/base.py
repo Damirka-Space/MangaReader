@@ -39,8 +39,8 @@ class MangaSourceBase(ABC):
         pass
 
     @classmethod
-    @abstractmethod  # FIXME frame_serial
-    def get_frame_url(cls, chapter_url: str, frame_num: int) -> str:
+    @abstractmethod
+    def get_frame_url(cls, chapter_url: str, frame_serial: int) -> str:
         pass  # NOTE private
 
     @classmethod

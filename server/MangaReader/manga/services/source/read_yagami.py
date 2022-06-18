@@ -18,6 +18,7 @@ class ReadYagami(MangaSourceBase):
         return int(div_block.text[:-2])
 
     @classmethod
-    def get_frame_url(cls, chapter_url: str, frame_num: int) -> str:
+    def get_frame_url(cls, chapter_url: str, frame_serial: int) -> str:
         return cls._get_soup(
-            chapter_url + 'page/' + str(frame_num)).select_one('#miku')['src']
+            chapter_url + 'page/' + str(frame_serial)
+        ).select_one('#miku')['src']
