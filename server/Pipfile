@@ -23,6 +23,7 @@ pytest = "*"
 pytest-django = "*"
 django-stubs = "*"
 djangorestframework-stubs = "*"
+pytest-cov = "*"
 
 [requires]
 python_version = "3.10"
@@ -31,3 +32,4 @@ python_version = "3.10"
 server = 'bash -c "python MangaReader/manage.py runserver"'
 static_analyzer = 'bash -c "cd MangaReader && mypy ."'
 tests = 'bash -c "cd MangaReader && pytest ."'
+coverage = 'bash -c "cd MangaReader && pytest --cov=. --cov-report=html && echo http://htmlcov/index.html"'
