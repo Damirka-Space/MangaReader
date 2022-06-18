@@ -1,6 +1,7 @@
 from typing import Generator
-import requests
 import logging
+
+from django.db.models import QuerySet
 
 from .. import models
 from .exceptions import IncompleteChapterError
@@ -11,10 +12,10 @@ logger.setLevel(logging.DEBUG)
 
 
 class Frame:
-    def __init__(self, chapter_id: int, serial: int, url: str) -> None:
+    def __init__(self, chapter_id: int, serial: int, img: bytes) -> None:
         self.__chapter_id = chapter_id
         self.serial = serial
-        self.external_url = url
+        self.img = img
 
     @property
     def chapter(self) -> models.Chapter:
@@ -26,7 +27,7 @@ class Frame:
         return self.__get_object()
 
     def __get_object(self) -> models.Frame:
-        try:
+        try:  # NOTE check its only creating not getting
             logger.debug('trying get object')
             return models.Frame.objects.get(
                 chapter=self.chapter,
@@ -37,27 +38,28 @@ class Frame:
             return models.Frame.objects.create(
                 chapter=self.chapter,
                 serial=self.serial,
-                external_url=self.external_url,
-                internal_url='',
-                img=self.__get_img_from_external_url()
+                external_url='',  # [ ] delete
+                internal_url=self.__get_internal_url(),
+                img=self.img
             )
 
-    def __get_img_from_external_url(self) -> bytes:
-        logger.debug('downloading frame from ' + self.external_url)
-        return requests.get(self.external_url).content
+    def __get_internal_url(self):
+        # [ ] Get from CDN
+        # NOTE get host where project started
+        # NOTE host + cdn/img/<id>
+        return ''
 
 
 class FrameBrowser:
     def __init__(self, chapter_id: int) -> None:
         self.__chapter_id = chapter_id
 
-    @classmethod
+    @classmethod  # FIXME What is this?
     def get_by_id(cls, frame_id: int) -> models.Frame:
         return models.Frame.objects.get(id=frame_id)
 
-    def create(self, serial: int,
-               external_url: str) -> models.Frame:
-        return Frame(self.__chapter_id, serial, external_url).object
+    def create(self, serial: int, img: bytes) -> models.Frame:
+        return Frame(self.__chapter_id, serial, img).object
 
     def is_exist(self, serial: int) -> bool:
         return models.Frame.objects.filter(
@@ -71,14 +73,18 @@ class FrameBrowser:
 
     def is_all_related_exist(self) -> bool:
         chapter = self.__chapter_object
-        return len(chapter.frame_set.all()) == chapter.frames_cnt
+        return len(self.__chapter_frame_set) == chapter.frames_cnt
 
     def get_all_related(self) -> Generator[models.Frame, None, None]:
         if not self.is_all_related_exist():
             raise IncompleteChapterError()
 
-        for frame in self.__chapter_object.frame_set.all():
+        for frame in self.__chapter_frame_set:
             yield frame
+
+    @property
+    def __chapter_frame_set(self) -> QuerySet:
+        return self.__chapter_object.frame_set.all()
 
     @property
     def __chapter_object(self) -> models.Chapter:
